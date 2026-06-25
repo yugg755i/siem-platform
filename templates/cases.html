@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cases — SIEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">SIEM / <strong>cases</strong></div>
+      <div class="header-right">{{ cases | length }} cases</div>
+    </header>
+
+    <div class="page-title">Cases</div>
+
+    <nav class="nav">
+      <a href="/">Dashboard</a>
+      <a href="/events">Events</a>
+      <a href="/alerts">Alerts</a>
+      <a href="/cases" class="active">Cases</a>
+      <a href="/search">Search</a>
+    </nav>
+
+    <div class="table-block">
+      {% if cases %}
+      <table>
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Alert</th>
+            <th>Verdict</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for case in cases %}
+          <tr onclick="window.location='/cases/{{ case['id'] }}'" class="clickable">
+            <td class="ts">#{{ case['id'] }}</td>
+            <td class="ts"><a href="/alerts/{{ case['alert_id'] }}" onclick="event.stopPropagation();">Alert #{{ case['alert_id'] }}</a></td>
+            <td>
+              {% if case['verdict'] %}
+              <span class="badge badge--{{ 'danger' if case['verdict'] == 'TRUE_POSITIVE' else 'success' }}">{{ case['verdict'] }}</span>
+              {% else %}
+              <span style="color: var(--text-muted); font-style: italic;">Pending</span>
+              {% endif %}
+            </td>
+            <td><span class="badge badge--status-{{ case['status'] | lower }}">{{ case['status'] }}</span></td>
+            <td class="ts">{{ case['created_at'] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">No cases found.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

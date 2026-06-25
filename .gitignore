@@ -1,0 +1,12 @@
+.env
+
+__pycache__/
+*.pyc
+*.pyo
+
+data/*.json
+data/*.csv
+data/*.db
+data/*.txt
+
+.venv/

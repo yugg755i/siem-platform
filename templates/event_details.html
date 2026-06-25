@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event #{{ event['id'] if event else 'Not Found' }} — SIEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">SIEM / <a href="/events">events</a> / <strong>#{{ event['id'] if event else '?' }}</strong></div>
+      <div class="header-right">Event Detail</div>
+    </header>
+
+    <div class="page-title">Event Record</div>
+
+    <nav class="nav">
+      <a href="/">Dashboard</a>
+      <a href="/events" class="active">Events</a>
+      <a href="/alerts">Alerts</a>
+      <a href="/cases">Cases</a>
+      <a href="/search">Search</a>
+    </nav>
+
+    {% if event %}
+    <div class="section-label">Properties</div>
+    <div class="kv-list" style="margin-bottom: 24px;">
+      <div class="kv-row"><span class="kv-key">Event ID</span><span class="kv-val ts">#{{ event['id'] }}</span></div>
+      <div class="kv-row"><span class="kv-key">Type</span><span class="kv-val"><strong>{{ event['event_type'] }}</strong></span></div>
+      <div class="kv-row"><span class="kv-key">Source IP</span><span class="kv-val ip">{{ event['source_ip'] or '—' }}</span></div>
+      <div class="kv-row"><span class="kv-key">Timestamp</span><span class="kv-val ts">{{ event['timestamp'] or '—' }}</span></div>
+    </div>
+
+    <div class="section-label">Raw Fields</div>
+    <div class="table-block">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 250px;">Key</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key, val in event.items() %}
+          <tr>
+            <td class="ts"><strong>{{ key }}</strong></td>
+            <td style="font-family: var(--mono); color: var(--text);">{{ val if val is not none else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="table-block">
+      <div class="empty">Event not found.</div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>

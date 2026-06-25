@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Events — SIEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">SIEM / <strong>events</strong></div>
+      <div class="header-right">{{ events | length }} events</div>
+    </header>
+
+    <div class="page-title">Events</div>
+
+    <nav class="nav">
+      <a href="/">Dashboard</a>
+      <a href="/events" class="active">Events</a>
+      <a href="/alerts">Alerts</a>
+      <a href="/cases">Cases</a>
+      <a href="/search">Search</a>
+    </nav>
+
+    <div class="table-block">
+      {% if events %}
+      <table>
+        <thead>
+          <tr>
+            <th>Event ID</th>
+            <th>Type</th>
+            <th>Source IP</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+          <tr onclick="window.location='/events/{{ event['id'] }}'" class="clickable">
+            <td class="ts">#{{ event['id'] }}</td>
+            <td><strong>{{ event['event_type'] }}</strong></td>
+            <td class="ip">{{ event['source_ip'] or '—' }}</td>
+            <td class="ts">{{ event['timestamp'] or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty">No events found.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIEM — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="header-left">SIEM / <strong>dashboard</strong></div>
+      <div class="header-right">{{ total_alerts }} alerts total</div>
+    </header>
+
+    <div class="page-title">Security Overview</div>
+
+    <nav class="nav">
+      <a href="/" class="active">Dashboard</a>
+      <a href="/events">Events</a>
+      <a href="/alerts">Alerts</a>
+      <a href="/cases">Cases</a>
+      <a href="/search">Search</a>
+    </nav>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">Total Alerts</div>
+        <div class="stat-value">{{ total_alerts }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">New</div>
+        <div class="stat-value stat-value--danger">{{ open_alerts }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Investigating</div>
+        <div class="stat-value stat-value--warning">{{ investigating_alerts }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Closed</div>
+        <div class="stat-value stat-value--success">{{ closed_alerts }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Unique IPs</div>
+        <div class="stat-value">{{ unique_ips }}</div>
+      </div>
+    </div>
+
+    {% if top_ips %}
+    <div class="section-label">Top Source IPs</div>
+    <div class="ip-block">
+      {% for ip, count in top_ips %}
+      <div class="ip-row">
+        <div><span style="color: var(--text-muted); margin-right: 10px;">#{{ loop.index }}</span><span class="ip-addr">{{ ip }}</span></div>
+        <span class="ip-count">{{ count }} event{{ 's' if count != 1 }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="section-label">Recent Events</div>
+    <div class="table-block">
+      {% if events %}
+      <table>
+        <thead>
+          <tr>
+            <th>Event ID</th>
+            <th>Type</th>
+            <th>Source IP</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events[:20] %}
+          <tr onclick="window.location='/events/{{ event['id'] }}'" class="clickable">
+            <td class="ts">#{{ event['id'] }}</td>
+            <td><strong>{{ event['event_type'] }}</strong></td>
+            <td class="ip">{{ event['source_ip'] or '—' }}</td>
+            <td class="ts">{{ event['timestamp'] or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if events | length > 20 %}
+      <div class="table-footer">
+        Showing latest 20 — <a href="/events">View all {{ events | length }} events</a>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="empty">No events found.</div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>
