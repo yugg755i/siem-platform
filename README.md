@@ -119,8 +119,8 @@ notes           — timestamped analyst notes on cases
 ## Setup
 
 ```bash
-git clone https://github.com/yugg755i/mini-siem
-cd mini-siem
+git clone https://github.com/yugg755i/siem-platform
+cd siem-platform
 
 python -m venv .venv
 source .venv/bin/activate
@@ -173,7 +173,3 @@ On startup, `process_logs()` is called automatically — ingests all three log f
 - SQLite3 (via stdlib `sqlite3`)
 - python-dotenv
 - requests
-
-## Known Bugs
-
-See [`BUGS.md`](BUGS.md) or check issues tab.
