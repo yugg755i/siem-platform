@@ -1,11 +1,12 @@
 # SIEM Platform
 
-A lightweight Security Information and Event Management (SIEM) system built with Python and Flask. Ingests logs from multiple sources, normalizes them into events, runs automated threat detection rules, and presents everything through a SOC-style web dashboard with alert triage, case management, and investigation workflows.
+A Python-based Security Information and Event Management (SIEM) platform built with Python and Flask that simulates a modern Security Operations Center (SOC) workflow. The platform ingests Linux, Apache, and Windows logs, normalizes them into a unified event model, executes automated detection rules, enriches indicators with threat intelligence, and provides a web-based interface for alert triage, case management, and analyst investigations.
 
 ## Table of Contents
 
 - [Highlights](#highlights)
 - [Overview](#overview)
+- [Architecture](#architecture)
 - [Screenshots](#screenshots)
 - [Features](#features)
 - [Project Structure](#project-structure)
@@ -17,12 +18,15 @@ A lightweight Security Information and Event Management (SIEM) system built with
 
 ## Highlights
 
-- End-to-end SOC workflow from raw logs to case verdict — all in one local tool
-- 4 detection rules with MITRE ATT&CK mappings and AbuseIPDB threat intelligence enrichment
-- Full case management: open cases, add investigation notes, set TP/FP/Benign verdicts
-- Synthetic log generators for testing attack scenarios without external tooling
-- AbuseIPDB threat intel integration for live IP reputation checks
-- Zero cloud dependency — runs entirely local on SQLite + Flask
+* End-to-end SOC workflow: **logs → events → detections → alerts → investigations → cases**
+* Multi-source log ingestion for Linux authentication, Apache access, and Windows Event Logs
+* Four detection rules mapped to the MITRE ATT&CK framework with AbuseIPDB threat intelligence enrichment
+* SOC-style alert lifecycle with severity levels, status tracking, and linked evidence
+* Case management with investigation notes, analyst verdicts, and case status updates
+* Interactive Flask dashboard for monitoring events, alerts, investigations, and search
+* Synthetic log generation for creating realistic attack scenarios without external tooling
+* Fully local deployment using Python, Flask, and SQLite with no cloud dependencies
+
 
 ## Overview
 
@@ -34,7 +38,15 @@ Logs → Ingest → Parse → Normalize → Detect → Alert → Triage → Case
 
 Three log sources feed into a unified event store. Detection modules run against the events and generate structured alerts with MITRE ATT&CK mappings. Analysts can triage alerts, open cases, add investigation notes, and record verdicts — all from the web UI.
 
+## Architecture
+
+The SIEM processes logs through a multi-stage pipeline. Raw logs are ingested, parsed into a normalized event format, evaluated by detection rules, and stored as alerts in SQLite. Analysts investigate alerts through the Flask dashboard, where they can create cases, add notes, update statuses, and assign verdicts.
+
+![Architecture](architecture/siem-platform-architecture.png)
+
 ## Screenshots
+
+The following screenshots demonstrate the analyst workflow, including dashboard monitoring, alert triage, case management, and investigation.
 
 ### Dashboard
 ![Dashboard](screenshots/dashboard.png)
@@ -92,7 +104,7 @@ Three log sources feed into a unified event store. Detection modules run against
 - Private IP filtering (only public IPs are checked)
 
 ### Synthetic Log Generators
-- Generates realistic auth, Apache, and Windows logs with both normal and attack traffic for testing
+- Generates realistic Linux auth, Apache access, and Windows Event logs containing both benign and malicious activity for repeatable testing.
 
 ## Project Structure
 
@@ -150,13 +162,13 @@ siem-platform/
 
 ## Database Schema
 
-```
-events          — normalized log events from all sources
-alerts          — detections with severity, status, MITRE ID
-alert_events    — many-to-many: alerts ↔ events
-cases           — investigation cases linked to alerts
-notes           — timestamped analyst notes on cases
-```
+| Table | Description |
+|-------|-------------|
+| events | Normalized events from all log sources |
+| alerts | Generated detections with severity, status, and MITRE mappings |
+| alert_events | Mapping between alerts and the events that triggered them |
+| cases | Investigation cases created by analysts |
+| notes | Timestamped analyst investigation notes |
 
 ## Setup
 
@@ -179,19 +191,27 @@ ABUSEIPDB_API_KEY=your_key_here
 
 ## Usage
 
-- Start the application:
+- Start the application.
 
 ```bash
+
 python app.py
+
 ```
 
-- Open http://127.0.0.1:5000.
-- Click Generate Sample Logs to create synthetic log data, it would automatically generate logs, events and alerts.
-- Click Upload Logs to import your own auth, Apache, or Windows logs
-- Click Process Logs to ingest, parse, and normalize events.
-- Click Run Detections to execute detection rules and generate alerts.
-- Investigate alerts, create cases, add analyst notes, and assign verdicts through the web dashboard.
-- Use Clear All to reset the database.
+- Open `http://127.0.0.1:5000` in your browser.
+
+- Use **Generate Sample Logs** to create realistic log data. The application automatically generates logs, normalizes them into events, executes detection rules, and creates alerts.
+
+- Alternatively, use **Upload Logs** to import your own Linux authentication, Apache access, or Windows Event Logs.
+
+- Use **Process Logs** to parse uploaded logs into normalized events.
+
+- Use **Run Detections** to execute all detection rules against the event database and generate alerts.
+  
+- Investigate alerts through the dashboard, create investigation cases, record analyst notes, update statuses, and assign verdicts.
+
+- Use **Clear All** to reset the database and start a new investigation dataset.
 
 ## Dashboard Routes
 
@@ -211,8 +231,8 @@ python app.py
 - Python 3.10+
 - Flask
 - SQLite3
+- Jinja2
 - HTML5
 - CSS3
-- Jinja2
-- python-dotenv
 - requests
+- python-dotenv
