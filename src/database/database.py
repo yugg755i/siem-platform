@@ -345,9 +345,12 @@ def create_case(alert_id, verdict, status, created_at):
         """,
         (alert_id, verdict, status, created_at)
         )
+    case_id = cursor.lastrowid()
 
     conn.commit()
     conn.close()
+
+    return case_id
 
 def get_case(case_id):
 
