@@ -26,28 +26,29 @@ NORMAL_IPS = [
 
 ATTACKER_IP = "203.0.113.50"
 
-with open("logs/apache.log", "w") as file:
+def apache_generator():
+    with open("logs/apache.log", "w") as file:
 
-    for _ in range(400):
+        for _ in range(400):
 
-        path = random.choice(NORMAL_PATHS)
-        ip = random.choice(NORMAL_IPS)
+            path = random.choice(NORMAL_PATHS)
+            ip = random.choice(NORMAL_IPS)
 
-        line = (
-            f'{ip} - - '
-            f'[{datetime.now().strftime("%d/%b/%Y:%H:%M:%S")} +0000] '
-            f'"GET {path} HTTP/1.1" 200 1234\n'
-        )
-        file.write(line)
+            line = (
+                f'{ip} - - '
+                f'[{datetime.now().strftime("%d/%b/%Y:%H:%M:%S")} +0000] '
+                f'"GET {path} HTTP/1.1" 200 1234\n'
+            )
+            file.write(line)
 
-    for _ in range(100):
+        for _ in range(100):
 
-        path = random.choice(SCAN_PATHS)
- 
-        line = (
-            f'{ATTACKER_IP} - - '
-            f'[{datetime.now().strftime("%d/%b/%Y:%H:%M:%S")} +0000] '
-            f'"GET {path} HTTP/1.1" 404 512\n'
-        )
-        file.write(line)
+            path = random.choice(SCAN_PATHS)
+    
+            line = (
+                f'{ATTACKER_IP} - - '
+                f'[{datetime.now().strftime("%d/%b/%Y:%H:%M:%S")} +0000] '
+                f'"GET {path} HTTP/1.1" 404 512\n'
+            )
+            file.write(line)
 

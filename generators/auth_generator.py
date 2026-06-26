@@ -13,29 +13,30 @@ ATTACKER_IPS = [
     "192.0.2.11",
 ]
 
-with open("logs/auth.log", "w") as file:
+def auth_generator():
+    with open("logs/auth.log", "w") as file:
 
-    for _ in range(500):
+        for _ in range(500):
 
-        user = random.choice(USERS)
-        ip = random.choice(IPS)
+            user = random.choice(USERS)
+            ip = random.choice(IPS)
 
-        line = (
-            f"{datetime.now().strftime("%b %d %H:%M:%S")} ubuntu sshd[1234]: "
-            f"Accepted password for {user} "
-            f"from {ip} port 22 ssh2\n"
-        )
-        file.write(line)
+            line = (
+                f"{datetime.now().strftime("%b %d %H:%M:%S")} ubuntu sshd[1234]: "
+                f"Accepted password for {user} "
+                f"from {ip} port 22 ssh2\n"
+            )
+            file.write(line)
 
-    for _ in range(200):
+        for _ in range(200):
 
-        ip = random.choice(ATTACKER_IPS)
+            ip = random.choice(ATTACKER_IPS)
 
-        line = (
-            f"{datetime.now().strftime("%b %d %H:%M:%S")} ubuntu sshd[1234]: "
-            f"Failed password for invalid user admin "
-            f"from {ip} port 22 ssh2\n"
-        )
-        file.write(line)
+            line = (
+                f"{datetime.now().strftime("%b %d %H:%M:%S")} ubuntu sshd[1234]: "
+                f"Failed password for invalid user admin "
+                f"from {ip} port 22 ssh2\n"
+            )
+            file.write(line)
 
 
