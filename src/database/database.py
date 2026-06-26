@@ -235,14 +235,14 @@ def create_alerts(alerts):
 
         alert_id = cursor.lastrowid
 
-    for event_id in alert["event_ids"]:
-        cursor.execute(
-            """
-            INSERT INTO alert_events(alert_id, event_id)
-            VALUES (?, ?)
-            """,
-            (alert_id, event_id)
-        )
+        for event_id in alert["event_ids"]:
+            cursor.execute(
+                """
+                INSERT INTO alert_events(alert_id, event_id)
+                VALUES (?, ?)
+                """,
+                (alert_id, event_id)
+            )
 
     conn.commit()
     conn.close()
