@@ -34,7 +34,7 @@ def create_database():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         alert_id INTEGER,
         verdict TEXT CHECK(
-            verdict IN ('TRUE POSITIVE', 'FALSE POSITIVE', 'BENIGN')
+            verdict IN ('TRUE_POSITIVE', 'FALSE_POSITIVE', 'BENIGN')
             ),
         status TEXT CHECK(
             status IN ('NEW', 'INVESTIGATING', 'ESCALATED', 'CLOSED')
