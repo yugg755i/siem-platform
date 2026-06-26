@@ -34,11 +34,11 @@ def create_database():
     );
     CREATE TABLE IF NOT EXISTS cases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        alert_id INTEGER,
-        verdict TEXT CHECK(
-            verdict IN ('TRUE_POSITIVE', 'FALSE_POSITIVE', 'BENIGN')
+        alert_id INTEGER UNIQUE,
+        verdict TEXT DEFAULT 'PENDING' CHECK(
+            verdict IN ('PENDING','TRUE_POSITIVE', 'FALSE_POSITIVE', 'BENIGN')
             ),
-        status TEXT CHECK(
+        status TEXT DEFAULT 'NEW' CHECK(
             status IN ('NEW', 'INVESTIGATING', 'ESCALATED', 'CLOSED')
             ),
         created_at TEXT,

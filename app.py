@@ -10,6 +10,9 @@ from src.database.database import (
     get_all_alerts, get_all_cases,
     clear_events, clear_alerts, clear_cases, clear_notes
     )
+from src.investigation.cases import open_case, alter_case_status
+from src.investigation.notes import add_investigation_note
+from src.investigation.verdicts import set_verdict
 from src.pipeline import process_logs, ingest_logs, run_detections
 
 app = Flask(__name__)
@@ -129,15 +132,21 @@ def alert_details(alert_id):
     alert = get_alert(alert_id)
     events = get_events_for_alert(alert_id)
     cases = get_cases(alert_id)
-    return render_template("alert_details.html", alert=alert, events=events, cases=cases)
+    case = cases[0] if cases else None
+    return render_template("alert_details.html", alert=alert, events=events, case=case)
 
 @app.route("/alerts/<int:alert_id>/status", methods=["POST"])
-def status(alert_id):
+def alert_status(alert_id):
     status = request.form.get("status")
     if status in ("NEW", "INVESTIGATING", "ESCALATED", "CLOSED"):
         update_alert_status(alert_id, status)
 
     return redirect(f"/alerts/{alert_id}")
+
+@app.route("/alerts/<int:alert_id>/open_case", methods=["POST"])
+def case_open(alert_id):
+    case_id = open_case(alert_id)
+    return redirect(f"/cases/{case_id}")
 
 @app.route("/cases")
 def cases_page():
@@ -149,6 +158,28 @@ def case_details(case_id):
     case = get_case(case_id)
     notes = get_notes(case_id)
     return render_template("case_details.html", case=case, notes=notes)
+
+@app.route("/cases/<int:case_id>/status", methods=["POST"])
+def case_status(case_id):
+    status = request.form.get('status')
+    case_data = get_case(case_id)
+    alert_id = case_data["alert_id"] if case_data else None
+    alter_case_status(case_id, status, alert_id)
+    return redirect(f"/cases/{case_id}")
+
+@app.route("/cases/<int:case_id>/verdict", methods=["POST"])
+def case_verdict(case_id):
+    verdict = request.form.get('verdict')
+    set_verdict(case_id, verdict)
+
+    return redirect(f"/cases/{case_id}")
+
+@app.route("/cases/<int:case_id>/note", methods=["POST"])
+def case_note(case_id):
+    note = request.form.get('note')
+    add_investigation_note(case_id, note)
+    return redirect(f"/cases/{case_id}")
+
 
 @app.route("/search")
 def search():

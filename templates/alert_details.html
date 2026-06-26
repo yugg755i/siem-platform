@@ -110,7 +110,7 @@
 
     <div class="section-label">Cases</div>
     <div class="table-block">
-      {% if cases %}
+      {% if case %}
       <table>
         <thead>
           <tr>
@@ -121,7 +121,6 @@
           </tr>
         </thead>
         <tbody>
-          {% for case in cases %}
           <tr onclick="window.location='/cases/{{ case['id'] }}'" class="clickable">
             <td class="ts">#{{ case['id'] }}</td>
             <td>
@@ -134,11 +133,15 @@
             <td><span class="badge badge--status-{{ case['status'] | lower }}">{{ case['status'] }}</span></td>
             <td class="ts">{{ case['created_at'] or '—' }}</td>
           </tr>
-          {% endfor %}
         </tbody>
       </table>
       {% else %}
-      <div class="empty">No cases linked to this alert.</div>
+        <div class="empty" style="padding: 20px; text-align: center;">
+          <p style="margin-bottom: 12px; color: var(--text-muted);">No cases linked to this alert.</p>
+          <form action="/alerts/{{ alert['id'] }}/open_case" method="POST">
+            <button type="submit" class="action-btn">Open Investigation Case</button>
+          </form>
+        </div>
       {% endif %}
     </div>
     {% else %}
