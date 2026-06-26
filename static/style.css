@@ -203,3 +203,28 @@ td.ip { font-family: var(--mono); color: var(--accent); }
 
 .empty { padding: 30px; text-align: center; color: var(--text-muted); font-family: var(--mono); }
 .table-footer { padding: 10px 14px; background: var(--surface-alt); font-size: 12px; color: var(--text-muted); }
+
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.action-btn:hover {
+  border-color: var(--text-muted);
+  color: var(--text);
+}
+.action-btn--danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.action-btn--danger:hover {
+  background: rgba(243,78,78,0.1);
+}

@@ -15,6 +15,29 @@
 
     <div class="page-title">Security Overview</div>
 
+    <div class="actions">
+
+    <form action="/generate" method="POST">
+        <button type="submit" class="action-btn" title="Generate synthetic auth, Apache, and Windows logs for testing">Generate Sample Logs</button>
+    </form>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <label class="action-btn" style="cursor:pointer;" title="Upload your own auth.log, apache.log, or windows.log">
+            Upload Logs
+            <input type="file" name="logs" multiple accept=".log,.json" style="display:none;" onchange="this.form.submit()">
+        </label>
+    </form>
+    <form action="/process" method="POST">
+        <button type="submit" class="action-btn" title="Parse uploaded logs and store normalized events in the database">Process Logs</button>
+    </form>
+    <form action="/detect" method="POST">
+        <button type="submit" class="action-btn" title="Run detection rules against stored events and generate alerts">Run Detections</button>
+    </form>
+    <form action="/clear" method="POST">
+        <button type="submit" class="action-btn action-btn--danger" title="Wipe all events, alerts, cases, and notes from the database">Clear All</button>
+    </form>
+
+    </div>
+
     <nav class="nav">
       <a href="/" class="active">Dashboard</a>
       <a href="/events">Events</a>

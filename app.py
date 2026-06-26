@@ -1,13 +1,77 @@
-from flask import Flask, render_template, request
+import os
+from flask import Flask, render_template, request, redirect
+from generators.apache_generator import  apache_generator
+from generators.auth_generator import  auth_generator
+from generators.windows_generator import  windows_generator
 from src.database.database import (
+    create_database,
     get_event, get_alert_count_by_status, get_all_events, get_events_for_alert,
     get_alert, get_case, get_cases, get_notes,
-    get_all_alerts, get_all_cases
+    get_all_alerts, get_all_cases,
+    clear_events, clear_alerts, clear_cases, clear_notes
     )
-from src.pipeline import process_logs
+from src.pipeline import process_logs, ingest_logs, run_detections
 
 app = Flask(__name__)
 
+LOG_DIR = "logs"
+
+ALLOWED = {
+    "auth.log",
+    "apache.log",
+    "windows.log"
+}
+
+@app.route("/generate", methods=["POST"])
+def generate():
+
+    apache_generator()
+    auth_generator()
+    windows_generator()
+
+    process_logs()
+
+    return redirect("/")
+
+@app.route("/upload", methods=["POST"])
+def upload_logs():
+
+    files = request.files.getlist("logs")
+
+    for file in files:
+
+        if file.filename == "":
+            continue
+
+        if file.filename not in ALLOWED:
+            continue
+
+        path = os.path.join(LOG_DIR, file.filename)
+        file.save(path)
+
+    return redirect("/")
+
+@app.route("/process", methods=["POST"])
+def process():
+
+    ingest_logs()
+
+    return redirect("/")
+
+@app.route("/detect", methods=["POST"])
+def detections():
+
+    run_detections()
+
+    return redirect("/")
+
+@app.route("/clear", methods=["POST"])
+def clear():
+    clear_notes()
+    clear_cases()
+    clear_alerts()
+    clear_events()
+    return redirect("/")
 
 @app.route("/")
 def dashboard():
@@ -45,24 +109,20 @@ def dashboard():
         severity_counts=severity_counts,
     )
 
-
 @app.route("/events")
 def event_page():
     events = get_all_events()
     return render_template("events.html", events=events)
-
 
 @app.route("/events/<int:event_id>")
 def event_details(event_id):
     event = get_event(event_id)
     return render_template("event_details.html", event=event)
 
-
 @app.route("/alerts")
 def alerts_page():
     alerts = get_all_alerts()
     return render_template("alerts.html", alerts=alerts)
-
 
 @app.route("/alerts/<int:alert_id>")
 def alert_details(alert_id):
@@ -71,19 +131,16 @@ def alert_details(alert_id):
     cases = get_cases(alert_id)
     return render_template("alert_details.html", alert=alert, events=events, cases=cases)
 
-
 @app.route("/cases")
 def cases_page():
     cases = get_all_cases()
     return render_template("cases.html", cases=cases)
-
 
 @app.route("/cases/<int:case_id>")
 def case_details(case_id):
     case = get_case(case_id)
     notes = get_notes(case_id)
     return render_template("case_details.html", case=case, notes=notes)
-
 
 @app.route("/search")
 def search():
@@ -104,5 +161,5 @@ def search():
 
 
 if __name__ == "__main__":
-    process_logs()
+    create_database()
     app.run(debug=True)
