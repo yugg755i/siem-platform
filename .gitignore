@@ -10,3 +10,5 @@ data/*.db
 data/*.txt
 
 .venv/
+
+logs/*
