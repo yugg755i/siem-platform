@@ -55,7 +55,7 @@
 
           <form action="/cases/{{ case['id'] }}/verdict" method="POST" style="display: flex; gap: 8px; align-items: center;">
             <select name="verdict" class="search-input" style="padding: 6px 12px; height: auto;">
-              <option value="Pending" {% if case['verdict'] == 'Pending' %}selected{% endif %}>Pending</option>
+              <option value="PENDING" {% if case['verdict'] == 'PENDING' %}selected{% endif %}>Pending</option>
               <option value="TRUE_POSITIVE" {% if case['verdict'] == 'TRUE_POSITIVE' %}selected{% endif %}>True Positive</option>
               <option value="FALSE_POSITIVE" {% if case['verdict'] == 'FALSE_POSITIVE' %}selected{% endif %}>False Positive</option>
               <option value="BENIGN" {% if case['verdict'] == 'BENIGN' %}selected{% endif %}>Benign</option>
