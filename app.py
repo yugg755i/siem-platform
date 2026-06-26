@@ -6,7 +6,7 @@ from generators.windows_generator import  windows_generator
 from src.database.database import (
     create_database,
     get_event, get_alert_count_by_status, get_all_events, get_events_for_alert,
-    get_alert, get_case, get_cases, get_notes,
+    get_alert, update_alert_status, get_case, get_cases, get_notes,
     get_all_alerts, get_all_cases,
     clear_events, clear_alerts, clear_cases, clear_notes
     )
@@ -130,6 +130,14 @@ def alert_details(alert_id):
     events = get_events_for_alert(alert_id)
     cases = get_cases(alert_id)
     return render_template("alert_details.html", alert=alert, events=events, cases=cases)
+
+@app.route("/alerts/<int:alert_id>/status", methods=["POST"])
+def status(alert_id):
+    status = request.form.get("status")
+    if status in ("NEW", "INVESTIGATING", "ESCALATED", "CLOSED"):
+        update_alert_status(alert_id, status)
+
+    return redirect(f"/alerts/{alert_id}")
 
 @app.route("/cases")
 def cases_page():

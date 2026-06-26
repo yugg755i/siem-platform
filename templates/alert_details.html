@@ -36,6 +36,22 @@
       <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ alert['created_at'] or '—' }}</span></div>
     </div>
 
+    <div class="section-label">Triage</div>
+    <div class="actions">
+      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+        <input type="hidden" name="status" value="INVESTIGATING">
+        <button type="submit" class="action-btn">Mark Investigating</button>
+      </form>
+      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+        <input type="hidden" name="status" value="ESCALATED">
+        <button type="submit" class="action-btn">Escalate</button>
+      </form>
+      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+        <input type="hidden" name="status" value="CLOSED">
+        <button type="submit" class="action-btn">Close</button>
+      </form>
+    </div>
+
     <div class="section-label">Related Events</div>
     <div class="table-block" style="margin-bottom: 24px;">
       {% if events %}
