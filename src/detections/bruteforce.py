@@ -31,7 +31,11 @@ def bruteforce_detection(events):
                 "mitre_id": "T1110",
                 "created_at": data["timestamp"],
                 "event_ids": data["event_ids"],
-                "attempts": len(data["event_ids"])
+                "evidence": {
+                    "attempts": len(data["event_ids"]),
+                    "source_ip": ip,
+                    "port": data["port"]
+                    }
             })
 
     return alerts

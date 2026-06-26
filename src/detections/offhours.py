@@ -39,7 +39,11 @@ def off_hours_login(events):
                 "mitre_id": "T1078",
                 "created_at": event["timestamp"],
                 "event_ids": [event["id"]],
-                "login_time": timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                "evidence": {
+                    "username": event["username"],
+                    "source_ip": event["source_ip"],
+                    "login_time": timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                    }
                 })
 
     return alerts

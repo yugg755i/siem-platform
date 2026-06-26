@@ -36,6 +36,34 @@
       <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ alert['created_at'] or '—' }}</span></div>
     </div>
 
+    <div class="section-label">Evidence</div>
+
+    <div class="kv-list" style="margin-bottom:24px;">
+        {% for key, value in alert["evidence"].items() %}
+        <div class="kv-row">
+            <span class="kv-key">
+                {{ key.replace("_", " ").title() }}
+            </span>
+
+            <span class="kv-val">
+            {% if value is string %}
+                {{ value }}
+
+            {% elif value is iterable %}
+                <ul class="evidence-list">
+                {% for item in value %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+                </ul>
+
+            {% else %}
+                {{ value }}
+            {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+
+</div>
     <div class="section-label">Triage</div>
     <div class="actions">
       <form action="/alerts/{{ alert['id'] }}/status" method="POST">

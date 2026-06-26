@@ -39,9 +39,11 @@ def webscan_detection(events):
                 "mitre_id": "T1595",
                 "created_at": data["created_at"],
                 "event_ids": data["event_ids"],
-                "unique_paths": len(data["paths"]),
-                "paths": list(data["paths"]),
-                "scanner_hits": data["scanner_hits"]
+                "evidence": {
+                    "unique_paths": len(data["paths"]),
+                    "scanner_hits": data["scanner_hits"],
+                    "requested_paths": list(data["paths"])
+                    }
             })
 
     return alerts

@@ -1,4 +1,5 @@
 import csv
+import json
 import sqlite3
 
 DB_PATH = "data/alerts.db"
@@ -28,7 +29,8 @@ def create_database():
             status IN ('NEW', 'INVESTIGATING', 'ESCALATED', 'CLOSED')
             ),
         mitre_id TEXT,
-        created_at TEXT
+        created_at TEXT,
+        evidence TEXT
     );
     CREATE TABLE IF NOT EXISTS cases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -218,9 +220,10 @@ def create_alerts(alerts):
                 port,
                 status,
                 mitre_id,
-                created_at
+                created_at,
+                evidence
                 )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 alert["title"],
@@ -229,7 +232,8 @@ def create_alerts(alerts):
                 alert["port"],
                 alert["status"],
                 alert["mitre_id"],
-                alert["created_at"]
+                alert["created_at"],
+                json.dumps(alert["evidence"])
             )
         )
 
@@ -262,9 +266,16 @@ def get_alert(alert_id):
 
     row = cursor.fetchone()
 
+    if row is None:
+        return None
+
+    alert = dict(row)
+
+    alert["evidence"] = json.loads(alert["evidence"])
+
     conn.close()
 
-    return row
+    return alert
 
 def get_all_alerts():
 
@@ -280,9 +291,16 @@ def get_all_alerts():
 
     rows = cursor.fetchall()
 
+    alerts = []
+
+    for row in rows:
+        alert = dict(row)
+        alert["evidence"] = json.loads(alert["evidence"])
+        alerts.append(alert)
+
     conn.close()
 
-    return rows
+    return alerts
 
 def clear_alerts():
 
@@ -369,7 +387,7 @@ def get_case(case_id):
 
     conn.close()
 
-    return row
+    return dict(row)
 
 def get_cases(alert_id):
 
@@ -388,7 +406,7 @@ def get_cases(alert_id):
 
     conn.close()
 
-    return rows
+    return [dict(row) for row in rows]
 
 def get_all_cases():
 
@@ -406,7 +424,7 @@ def get_all_cases():
 
     conn.close()
 
-    return rows
+    return [dict(row) for row in rows]
 
 def clear_cases():
 
@@ -487,7 +505,7 @@ def get_notes(case_id):
 
     conn.close()
 
-    return rows
+    return [dict(row) for row in rows]
 
 def get_all_notes():
 
@@ -505,7 +523,7 @@ def get_all_notes():
 
     conn.close()
 
-    return rows
+    return [dict(row) for row in rows]
 
 def clear_notes():
 

@@ -64,7 +64,10 @@ def malicious_ip_detection(events, api_key):
                 "mitre_id": "N/A",
                 "created_at": event["timestamp"],
                 "event_ids": [event["id"]],
-                "abuse_score": ip_data["abuseConfidenceScore"]
+                "evidence": {
+                    "source_ip": ip,
+                    "abuse_score": ip_data["abuseConfidenceScore"]
+                    }
             })
 
     return alerts
