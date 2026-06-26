@@ -2,6 +2,28 @@
 
 A lightweight Security Information and Event Management (SIEM) system built with Python and Flask. Ingests logs from multiple sources, normalizes them into events, runs automated threat detection rules, and presents everything through a SOC-style web dashboard with alert triage, case management, and investigation workflows.
 
+## Table of Contents
+
+- [Highlights](#highlights)
+- [Overview](#overview)
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Database Schema](#database-schema)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Dashboard Routes](#dashboard-routes)
+- [Tech Stack](#tech-stack)
+
+## Highlights
+
+- End-to-end SOC workflow from raw logs to case verdict — all in one local tool
+- 4 detection rules with MITRE ATT&CK mappings and AbuseIPDB threat intelligence enrichment
+- Full case management: open cases, add investigation notes, set TP/FP/Benign verdicts
+- Synthetic log generators for testing attack scenarios without external tooling
+- AbuseIPDB threat intel integration for live IP reputation checks
+- Zero cloud dependency — runs entirely local on SQLite + Flask
+
 ## Overview
 
 SIEM Platform simulates a real SOC workflow:
@@ -11,6 +33,26 @@ Logs → Ingest → Parse → Normalize → Detect → Alert → Triage → Case
 ```
 
 Three log sources feed into a unified event store. Detection modules run against the events and generate structured alerts with MITRE ATT&CK mappings. Analysts can triage alerts, open cases, add investigation notes, and record verdicts — all from the web UI.
+
+## Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Alerts
+![Alerts](screenshots/alerts.png)
+
+### Alert Investigation
+![Alert Details](screenshots/alert_details.png)
+
+### Case Investigation
+![Case Details](screenshots/case_details.png)
+
+### Cases
+![Cases](screenshots/cases.png)
+
+### Events
+![Events](screenshots/events.png)
 
 ## Features
 
@@ -25,11 +67,11 @@ Three log sources feed into a unified event store. Detection modules run against
 | SSH Brute Force | auth.log | T1110 | ≥5 failed logins from same source IP |
 | Off-Hours Login | auth.log | T1078 | Successful login outside 08:00–18:00; HIGH if admin/root |
 | Web Scanning / Recon | apache.log | T1595 | ≥3 hits on sensitive paths or ≥10 unique paths probed |
-| Malicious IP | all sources | — | AbuseIPDB confidence score ≥75 |
+| Malicious IP | all sources | Threat Intel | AbuseIPDB confidence score ≥75 |
 
 ### Alert Management
 - Alerts with severity (`LOW` / `MEDIUM` / `HIGH` / `CRITICAL`) and status (`NEW` / `INVESTIGATING` / `ESCALATED` / `CLOSED`)
-- Each alert links back to the raw events that triggered it
+- Each alert maintains links to the normalized events that triggered the detection, enabling analysts to pivot from alerts to supporting evidence during investigations.
 - Status lifecycle management via `alert_manager`
 
 ### Case Management & Investigation
@@ -90,7 +132,7 @@ siem-platform/
 │   ├── database/
 │   │   └── database.py           # SQLite schema + all DB operations
 │   └── mitre/
-│       └── mappings.py           
+│       └── mappings.py
 ├── templates/                    # Jinja2 HTML templates
 │   ├── dashboard.html
 │   ├── events.html
@@ -137,21 +179,19 @@ ABUSEIPDB_API_KEY=your_key_here
 
 ## Usage
 
-**Generate test logs:**
-```bash
-python generators/auth_generator.py
-python generators/apache_generator.py
-python generators/windows_generator.py
-```
+- Start the application:
 
-**Start the SIEM:**
 ```bash
 python app.py
 ```
 
-Runs at `http://127.0.0.1:5000`
-
-On startup, `process_logs()` is called automatically — ingests all three log files, normalizes events, runs all detection modules, and stores results in SQLite.
+- Open http://127.0.0.1:5000.
+- Click Generate Sample Logs to create synthetic log data, it would automatically generate logs, events and alerts.
+- Click Upload Logs to import your own auth, Apache, or Windows logs
+- Click Process Logs to ingest, parse, and normalize events.
+- Click Run Detections to execute detection rules and generate alerts.
+- Investigate alerts, create cases, add analyst notes, and assign verdicts through the web dashboard.
+- Use Clear All to reset the database.
 
 ## Dashboard Routes
 
@@ -170,6 +210,9 @@ On startup, `process_logs()` is called automatically — ingests all three log f
 
 - Python 3.10+
 - Flask
-- SQLite3 (via stdlib `sqlite3`)
+- SQLite3
+- HTML5
+- CSS3
+- Jinja2
 - python-dotenv
 - requests
