@@ -1,71 +1,53 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Search — SIEM</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="header-left">SIEM / <strong>search</strong></div>
-      <div class="header-right">Alert Search</div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="page-title">Search</div>
+{% block title %}Search — SIEM{% endblock %}
 
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/events">Events</a>
-      <a href="/alerts">Alerts</a>
-      <a href="/cases">Cases</a>
-      <a href="/search" class="active">Search</a>
-    </nav>
+{% block topbar_right %}Alert Search{% endblock %}
 
-    <form method="GET" action="/search" class="search-block">
-      <input type="text" name="ip" class="search-input" placeholder="Source IP..." value="{{ ip }}" />
-      <input type="text" name="title" class="search-input" placeholder="Alert title..." value="{{ title }}" />
-      <button type="submit" class="search-btn">Search</button>
-    </form>
+{% block page_title %}Search{% endblock %}
 
-    {% if searched %}
-    <div class="section-label">Results ({{ results | length }})</div>
-    <div class="table-block">
-      {% if results %}
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Severity</th>
-            <th>Source IP</th>
-            <th>Port</th>
-            <th>Status</th>
-            <th>MITRE</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for alert in results %}
-          <tr onclick="window.location='/alerts/{{ alert['id'] }}'" class="clickable">
-            <td class="ts">#{{ alert['id'] }}</td>
-            <td><strong>{{ alert['title'] }}</strong></td>
-            <td><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></td>
-            <td class="ip">{{ alert['source_ip'] or '—' }}</td>
-            <td class="ts">{{ alert['port'] or '—' }}</td>
-            <td><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></td>
-            <td class="ts">{{ alert['mitre_id'] or '—' }}</td>
-            <td class="ts">{{ alert['created_at'] or '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty">No results found.</div>
-      {% endif %}
-    </div>
-    {% endif %}
-  </div>
-</body>
-</html>
+{% block content %}
+<form method="GET" action="/search" class="search-block">
+  <input type="text" name="ip" class="search-input" placeholder="Source IP..." value="{{ ip }}" />
+  <input type="text" name="title" class="search-input" placeholder="Alert title..." value="{{ title }}" />
+  <button type="submit" class="search-btn">Search</button>
+</form>
+
+{% if searched %}
+<div class="section-label">Results ({{ results | length }})</div>
+<div class="table-block">
+  {% if results %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Severity</th>
+        <th>Source IP</th>
+        <th>Port</th>
+        <th>Status</th>
+        <th>MITRE</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in results %}
+      <tr onclick="window.location='/alerts/{{ alert['id'] }}'" class="clickable">
+        <td class="ts">#{{ alert['id'] }}</td>
+        <td><strong>{{ alert['title'] }}</strong></td>
+        <td><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></td>
+        <td class="ip">{{ alert['source_ip'] or '—' }}</td>
+        <td class="ts">{{ alert['port'] or '—' }}</td>
+        <td><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></td>
+        <td class="ts">{{ alert['mitre_id'] or '—' }}</td>
+        <td class="ts">{{ alert['created_at'] or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No results found.</div>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

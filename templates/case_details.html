@@ -1,101 +1,83 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Case #{{ case['id'] }} — SIEM</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="header-left">SIEM / <a href="/cases">cases</a> / <strong>#{{ case['id'] }}</strong></div>
-      <div class="header-right"><span class="badge badge--status-{{ case['status'] | lower }}">{{ case['status'] }}</span></div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="page-title">Case #{{ case['id'] }}</div>
+{% block title %}Case #{{ case['id'] }} — SIEM{% endblock %}
 
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/events">Events</a>
-      <a href="/alerts">Alerts</a>
-      <a href="/cases" class="active">Cases</a>
-      <a href="/search">Search</a>
-    </nav>
+{% block topbar_right %}Case Detail{% endblock %}
 
-    {% if case %}
-    <div class="section-label">Case Details</div>
-    <div class="kv-list" style="margin-bottom: 24px;">
-      <div class="kv-row"><span class="kv-key">Case ID</span><span class="kv-val ts">#{{ case['id'] }}</span></div>
-      <div class="kv-row"><span class="kv-key">Alert</span><span class="kv-val"><a href="/alerts/{{ case['alert_id'] }}" class="ts">Alert #{{ case['alert_id'] }}</a></span></div>
-      <div class="kv-row">
-        <span class="kv-key">Verdict</span>
-        <span class="kv-val">
-          {% if case['verdict'] %}
-          <span class="badge badge--{{ 'danger' if case['verdict'] == 'TRUE_POSITIVE' else 'success' }}">{{ case['verdict'] }}</span>
-          {% else %}
-          <span style="color: var(--text-muted); font-style: italic;">Pending</span>
-          {% endif %}
-        </span>
-      </div>
-      <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ case['created_at'] }}</span></div>
-    </div>
+{% block page_title %}Case #{{ case['id'] }}{% endblock %}
 
-    <div class="section-label">Case Actions</div>
-        <div class="actions" style="margin-bottom: 24px; gap: 15px; display: flex; flex-wrap: wrap;">
-          <form action="/cases/{{ case['id'] }}/status" method="POST" style="display: flex; gap: 8px; align-items: center;">
-            <select name="status" class="search-input" style="padding: 6px 12px; height: auto;">
-              <option value="NEW" {% if case['status'] == 'NEW' %}selected{% endif %}>NEW</option>
-              <option value="INVESTIGATING" {% if case['status'] == 'INVESTIGATING' %}selected{% endif %}>INVESTIGATING</option>
-              <option value="ESCALATED" {% if case['status'] == 'ESCALATED' %}selected{% endif %}>ESCALATED</option>
-              <option value="CLOSED" {% if case['status'] == 'CLOSED' %}selected{% endif %}>CLOSED</option>
-            </select>
-            <button type="submit" class="action-btn">Update Status</button>
-          </form>
-
-          <form action="/cases/{{ case['id'] }}/verdict" method="POST" style="display: flex; gap: 8px; align-items: center;">
-            <select name="verdict" class="search-input" style="padding: 6px 12px; height: auto;">
-              <option value="PENDING" {% if case['verdict'] == 'PENDING' %}selected{% endif %}>Pending</option>
-              <option value="TRUE_POSITIVE" {% if case['verdict'] == 'TRUE_POSITIVE' %}selected{% endif %}>True Positive</option>
-              <option value="FALSE_POSITIVE" {% if case['verdict'] == 'FALSE_POSITIVE' %}selected{% endif %}>False Positive</option>
-              <option value="BENIGN" {% if case['verdict'] == 'BENIGN' %}selected{% endif %}>Benign</option>
-            </select>
-            <button type="submit" class="action-btn">Set Verdict</button>
-          </form>
-        </div>
-
-    <div class="section-label">Add Investigation Log Note</div>
-    <form action="/cases/{{ case['id'] }}/note" method="POST" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px;">
-      <textarea name="note" class="search-input" placeholder="Type case notes, status reports, or investigation details..." style="width: 100%; min-height: 80px; font-family: inherit; padding: 10px;" required></textarea>
-      <button type="submit" class="action-btn" style="align-self: flex-start;">Save Note to Case Timeline</button>
-    </form>
-
-    <div class="section-label">Notes</div>
-    <div class="table-block">
-      {% if notes %}
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 180px;">Timestamp</th>
-            <th>Note</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for note in notes %}
-          <tr>
-            <td class="ts">{{ note['created_at'] }}</td>
-            <td style="white-space: pre-wrap; font-family: inherit; color: var(--text);">{{ note['note'] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+{% block content %}
+{% if case %}
+<div class="section-label">Case Details</div>
+<div class="kv-list" style="margin-bottom: 24px;">
+  <div class="kv-row"><span class="kv-key">Case ID</span><span class="kv-val ts">#{{ case['id'] }}</span></div>
+  <div class="kv-row"><span class="kv-key">Alert</span><span class="kv-val"><a href="/alerts/{{ case['alert_id'] }}" class="ts">Alert #{{ case['alert_id'] }}</a></span></div>
+  <div class="kv-row">
+    <span class="kv-key">Verdict</span>
+    <span class="kv-val">
+      {% if case['verdict'] %}
+      <span class="badge badge--{{ 'danger' if case['verdict'] == 'TRUE_POSITIVE' else 'success' }}">{{ case['verdict'] }}</span>
       {% else %}
-      <div class="empty">No notes on this case.</div>
+      <span style="color: var(--text-muted); font-style: italic;">Pending</span>
       {% endif %}
-    </div>
-    {% else %}
-    <div class="table-block"><div class="empty">Case not found.</div></div>
-    {% endif %}
+    </span>
   </div>
-</body>
-</html>
+  <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ case['created_at'] }}</span></div>
+</div>
+
+<div class="section-label">Case Actions</div>
+    <div class="actions" style="margin-bottom: 24px; gap: 15px; display: flex; flex-wrap: wrap;">
+      <form action="/cases/{{ case['id'] }}/status" method="POST" style="display: flex; gap: 8px; align-items: center;">
+        <select name="status" class="search-input" style="padding: 6px 12px; height: auto;">
+          <option value="NEW" {% if case['status'] == 'NEW' %}selected{% endif %}>NEW</option>
+          <option value="INVESTIGATING" {% if case['status'] == 'INVESTIGATING' %}selected{% endif %}>INVESTIGATING</option>
+          <option value="ESCALATED" {% if case['status'] == 'ESCALATED' %}selected{% endif %}>ESCALATED</option>
+          <option value="CLOSED" {% if case['status'] == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+        </select>
+        <button type="submit" class="action-btn">Update Status</button>
+      </form>
+
+      <form action="/cases/{{ case['id'] }}/verdict" method="POST" style="display: flex; gap: 8px; align-items: center;">
+        <select name="verdict" class="search-input" style="padding: 6px 12px; height: auto;">
+          <option value="PENDING" {% if case['verdict'] == 'PENDING' %}selected{% endif %}>Pending</option>
+          <option value="TRUE_POSITIVE" {% if case['verdict'] == 'TRUE_POSITIVE' %}selected{% endif %}>True Positive</option>
+          <option value="FALSE_POSITIVE" {% if case['verdict'] == 'FALSE_POSITIVE' %}selected{% endif %}>False Positive</option>
+          <option value="BENIGN" {% if case['verdict'] == 'BENIGN' %}selected{% endif %}>Benign</option>
+        </select>
+        <button type="submit" class="action-btn">Set Verdict</button>
+      </form>
+    </div>
+
+<div class="section-label">Add Investigation Log Note</div>
+<form action="/cases/{{ case['id'] }}/note" method="POST" style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 10px;">
+  <textarea name="note" class="search-input" placeholder="Type case notes, status reports, or investigation details..." style="width: 100%; min-height: 80px; font-family: inherit; padding: 10px;" required></textarea>
+  <button type="submit" class="action-btn" style="align-self: flex-start;">Save Note to Case Timeline</button>
+</form>
+
+<div class="section-label">Notes</div>
+<div class="table-block">
+  {% if notes %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 180px;">Timestamp</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for note in notes %}
+      <tr>
+        <td class="ts">{{ note['created_at'] }}</td>
+        <td style="white-space: pre-wrap; font-family: inherit; color: var(--text);">{{ note['note'] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No notes on this case.</div>
+  {% endif %}
+</div>
+{% else %}
+<div class="table-block"><div class="empty">Case not found.</div></div>
+{% endif %}
+{% endblock %}

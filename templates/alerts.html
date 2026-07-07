@@ -1,62 +1,44 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alerts — SIEM</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="header-left">SIEM / <strong>alerts</strong></div>
-      <div class="header-right">{{ alerts | length }} alerts</div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="page-title">Alerts</div>
+{% block title %}Alerts — SIEM{% endblock %}
 
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/events">Events</a>
-      <a href="/alerts" class="active">Alerts</a>
-      <a href="/cases">Cases</a>
-      <a href="/search">Search</a>
-    </nav>
+{% block topbar_right %}{{ alerts | length }} alerts{% endblock %}
 
-    <div class="table-block">
-      {% if alerts %}
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Severity</th>
-            <th>Source IP</th>
-            <th>Port</th>
-            <th>Status</th>
-            <th>MITRE</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for alert in alerts %}
-          <tr onclick="window.location='/alerts/{{ alert['id'] }}'" class="clickable">
-            <td class="ts">#{{ alert['id'] }}</td>
-            <td>{{ alert['title'] }}</td>
-            <td><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></td>
-            <td class="ip">{{ alert['source_ip'] or '—' }}</td>
-            <td class="ts">{{ alert['port'] or '—' }}</td>
-            <td><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></td>
-            <td class="ts">{{ alert['mitre_id'] or '—' }}</td>
-            <td class="ts">{{ alert['created_at'] or '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty">No alerts found.</div>
-      {% endif %}
-    </div>
-  </div>
-</body>
-</html>
+{% block page_title %}Alerts{% endblock %}
+
+{% block content %}
+<div class="table-block">
+  {% if alerts %}
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Severity</th>
+        <th>Source IP</th>
+        <th>Port</th>
+        <th>Status</th>
+        <th>MITRE</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alert in alerts %}
+      <tr onclick="window.location='/alerts/{{ alert['id'] }}'" class="clickable">
+        <td class="ts">#{{ alert['id'] }}</td>
+        <td>{{ alert['title'] }}</td>
+        <td><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></td>
+        <td class="ip">{{ alert['source_ip'] or '—' }}</td>
+        <td class="ts">{{ alert['port'] or '—' }}</td>
+        <td><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></td>
+        <td class="ts">{{ alert['mitre_id'] or '—' }}</td>
+        <td class="ts">{{ alert['created_at'] or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No alerts found.</div>
+  {% endif %}
+</div>
+{% endblock %}

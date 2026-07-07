@@ -1,152 +1,134 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Alert #{{ alert['id'] }} — SIEM</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-</head>
-<body>
-  <div class="page">
-    <header>
-      <div class="header-left">SIEM / <a href="/alerts">alerts</a> / <strong>#{{ alert['id'] }}</strong></div>
-      <div class="header-right"><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></div>
-    </header>
+{% extends "base.html" %}
 
-    <div class="page-title">{{ alert['title'] }}</div>
+{% block title %}Alert #{{ alert['id'] }} — SIEM{% endblock %}
 
-    <nav class="nav">
-      <a href="/">Dashboard</a>
-      <a href="/events">Events</a>
-      <a href="/alerts" class="active">Alerts</a>
-      <a href="/cases">Cases</a>
-      <a href="/search">Search</a>
-    </nav>
+{% block topbar_right %}Alert Detail{% endblock %}
 
-    {% if alert %}
-    <div class="section-label">Alert Details</div>
-    <div class="kv-list" style="margin-bottom: 24px;">
-      <div class="kv-row"><span class="kv-key">ID</span><span class="kv-val ts">#{{ alert['id'] }}</span></div>
-      <div class="kv-row"><span class="kv-key">Title</span><span class="kv-val"><strong>{{ alert['title'] }}</strong></span></div>
-      <div class="kv-row"><span class="kv-key">Severity</span><span class="kv-val"><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></span></div>
-      <div class="kv-row"><span class="kv-key">Source IP</span><span class="kv-val ip">{{ alert['source_ip'] or '—' }}</span></div>
-      <div class="kv-row"><span class="kv-key">Port</span><span class="kv-val ts">{{ alert['port'] or '—' }}</span></div>
-      <div class="kv-row"><span class="kv-key">Status</span><span class="kv-val"><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></span></div>
-      <div class="kv-row"><span class="kv-key">MITRE ATT&CK</span><span class="kv-val ts">{{ alert['mitre_id'] or '—' }}</span></div>
-      <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ alert['created_at'] or '—' }}</span></div>
+{% block page_title %}{{ alert['title'] }}{% endblock %}
+
+{% block content %}
+{% if alert %}
+<div class="section-label">Alert Details</div>
+<div class="kv-list" style="margin-bottom: 24px;">
+  <div class="kv-row"><span class="kv-key">ID</span><span class="kv-val ts">#{{ alert['id'] }}</span></div>
+  <div class="kv-row"><span class="kv-key">Title</span><span class="kv-val"><strong>{{ alert['title'] }}</strong></span></div>
+  <div class="kv-row"><span class="kv-key">Severity</span><span class="kv-val"><span class="badge badge--{{ alert['severity'] | lower }}">{{ alert['severity'] }}</span></span></div>
+  <div class="kv-row"><span class="kv-key">Source IP</span><span class="kv-val ip">{{ alert['source_ip'] or '—' }}</span></div>
+  <div class="kv-row"><span class="kv-key">Port</span><span class="kv-val ts">{{ alert['port'] or '—' }}</span></div>
+  <div class="kv-row"><span class="kv-key">Status</span><span class="kv-val"><span class="badge badge--status-{{ alert['status'] | lower }}">{{ alert['status'] }}</span></span></div>
+  <div class="kv-row"><span class="kv-key">MITRE ATT&amp;CK</span><span class="kv-val ts">{{ alert['mitre_id'] or '—' }}</span></div>
+  <div class="kv-row"><span class="kv-key">Created</span><span class="kv-val ts">{{ alert['created_at'] or '—' }}</span></div>
+</div>
+
+<div class="section-label">Evidence</div>
+
+<div class="kv-list" style="margin-bottom:24px;">
+    {% for key, value in alert["evidence"].items() %}
+    <div class="kv-row">
+        <span class="kv-key">
+            {{ key.replace("_", " ").title() }}
+        </span>
+
+        <span class="kv-val">
+        {% if value is string %}
+            {{ value }}
+
+        {% elif value is iterable %}
+            <ul class="evidence-list">
+            {% for item in value %}
+                <li>{{ item }}</li>
+            {% endfor %}
+            </ul>
+
+        {% else %}
+            {{ value }}
+        {% endif %}
+        </span>
     </div>
-
-    <div class="section-label">Evidence</div>
-
-    <div class="kv-list" style="margin-bottom:24px;">
-        {% for key, value in alert["evidence"].items() %}
-        <div class="kv-row">
-            <span class="kv-key">
-                {{ key.replace("_", " ").title() }}
-            </span>
-
-            <span class="kv-val">
-            {% if value is string %}
-                {{ value }}
-
-            {% elif value is iterable %}
-                <ul class="evidence-list">
-                {% for item in value %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-                </ul>
-
-            {% else %}
-                {{ value }}
-            {% endif %}
-            </span>
-        </div>
-        {% endfor %}
+    {% endfor %}
 
 </div>
-    <div class="section-label">Triage</div>
-    <div class="actions">
-      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
-        <input type="hidden" name="status" value="INVESTIGATING">
-        <button type="submit" class="action-btn">Mark Investigating</button>
-      </form>
-      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
-        <input type="hidden" name="status" value="ESCALATED">
-        <button type="submit" class="action-btn">Escalate</button>
-      </form>
-      <form action="/alerts/{{ alert['id'] }}/status" method="POST">
-        <input type="hidden" name="status" value="CLOSED">
-        <button type="submit" class="action-btn">Close</button>
-      </form>
-    </div>
+<div class="section-label">Triage</div>
+<div class="actions">
+  <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+    <input type="hidden" name="status" value="INVESTIGATING">
+    <button type="submit" class="action-btn">Mark Investigating</button>
+  </form>
+  <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+    <input type="hidden" name="status" value="ESCALATED">
+    <button type="submit" class="action-btn">Escalate</button>
+  </form>
+  <form action="/alerts/{{ alert['id'] }}/status" method="POST">
+    <input type="hidden" name="status" value="CLOSED">
+    <button type="submit" class="action-btn">Close</button>
+  </form>
+</div>
 
-    <div class="section-label">Related Events</div>
-    <div class="table-block" style="margin-bottom: 24px;">
-      {% if events %}
-      <table>
-        <thead>
-          <tr>
-            <th>Event ID</th>
-            <th>Type</th>
-            <th>Source IP</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ev in events %}
-          <tr onclick="window.location='/events/{{ ev['id'] }}'" class="clickable">
-            <td class="ts">#{{ ev['id'] }}</td>
-            <td><strong>{{ ev['event_type'] }}</strong></td>
-            <td class="ip">{{ ev['source_ip'] or '—' }}</td>
-            <td class="ts">{{ ev['timestamp'] or '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="empty">No related events.</div>
-      {% endif %}
-    </div>
+<div class="section-label">Related Events</div>
+<div class="table-block" style="margin-bottom: 24px;">
+  {% if events %}
+  <table>
+    <thead>
+      <tr>
+        <th>Event ID</th>
+        <th>Type</th>
+        <th>Source IP</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ev in events %}
+      <tr onclick="window.location='/events/{{ ev['id'] }}'" class="clickable">
+        <td class="ts">#{{ ev['id'] }}</td>
+        <td><strong>{{ ev['event_type'] }}</strong></td>
+        <td class="ip">{{ ev['source_ip'] or '—' }}</td>
+        <td class="ts">{{ ev['timestamp'] or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">No related events.</div>
+  {% endif %}
+</div>
 
-    <div class="section-label">Cases</div>
-    <div class="table-block">
-      {% if case %}
-      <table>
-        <thead>
-          <tr>
-            <th>Case ID</th>
-            <th>Verdict</th>
-            <th>Status</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr onclick="window.location='/cases/{{ case['id'] }}'" class="clickable">
-            <td class="ts">#{{ case['id'] }}</td>
-            <td>
-              {% if case['verdict'] %}
-              <span class="badge badge--{{ 'danger' if case['verdict'] == 'TRUE_POSITIVE' else 'success' }}">{{ case['verdict'] }}</span>
-              {% else %}
-              <span style="color: var(--text-muted); font-style: italic;">Pending</span>
-              {% endif %}
-            </td>
-            <td><span class="badge badge--status-{{ case['status'] | lower }}">{{ case['status'] }}</span></td>
-            <td class="ts">{{ case['created_at'] or '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-      {% else %}
-        <div class="empty" style="padding: 20px; text-align: center;">
-          <p style="margin-bottom: 12px; color: var(--text-muted);">No cases linked to this alert.</p>
-          <form action="/alerts/{{ alert['id'] }}/open_case" method="POST">
-            <button type="submit" class="action-btn">Open Investigation Case</button>
-          </form>
-        </div>
-      {% endif %}
+<div class="section-label">Cases</div>
+<div class="table-block">
+  {% if case %}
+  <table>
+    <thead>
+      <tr>
+        <th>Case ID</th>
+        <th>Verdict</th>
+        <th>Status</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr onclick="window.location='/cases/{{ case['id'] }}'" class="clickable">
+        <td class="ts">#{{ case['id'] }}</td>
+        <td>
+          {% if case['verdict'] %}
+          <span class="badge badge--{{ 'danger' if case['verdict'] == 'TRUE_POSITIVE' else 'success' }}">{{ case['verdict'] }}</span>
+          {% else %}
+          <span style="color: var(--text-muted); font-style: italic;">Pending</span>
+          {% endif %}
+        </td>
+        <td><span class="badge badge--status-{{ case['status'] | lower }}">{{ case['status'] }}</span></td>
+        <td class="ts">{{ case['created_at'] or '—' }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% else %}
+    <div class="empty" style="padding: 20px; text-align: center;">
+      <p style="margin-bottom: 12px; color: var(--text-muted);">No cases linked to this alert.</p>
+      <form action="/alerts/{{ alert['id'] }}/open_case" method="POST">
+        <button type="submit" class="action-btn">Open Investigation Case</button>
+      </form>
     </div>
-    {% else %}
-    <div class="table-block"><div class="empty">Alert not found.</div></div>
-    {% endif %}
-  </div>
-</body>
-</html>
+  {% endif %}
+</div>
+{% else %}
+<div class="table-block"><div class="empty">Alert not found.</div></div>
+{% endif %}
+{% endblock %}

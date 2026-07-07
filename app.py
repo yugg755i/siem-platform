@@ -87,7 +87,7 @@ def dashboard():
     investigating_alerts = get_alert_count_by_status("INVESTIGATING")[0][0]
     closed_alerts = get_alert_count_by_status("CLOSED")[0][0]
 
-    source_ips = [a["source_ip"] for a in alerts if a["source_ip"]]
+    source_ips = [a["source_ip"] for a in events if a["source_ip"]]
     ip_counts = {}
     for ip in source_ips:
         ip_counts[ip] = ip_counts.get(ip, 0) + 1
