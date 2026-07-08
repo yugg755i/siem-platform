@@ -2,7 +2,7 @@
 
 {% block title %}Events — SIEM{% endblock %}
 
-{% block topbar_right %}{{ events | length }} events{% endblock %}
+{% block topbar_right %}{{ events | length }} events total{% endblock %}
 
 {% block page_title %}Events{% endblock %}
 
@@ -12,17 +12,19 @@
   <table>
     <thead>
       <tr>
-        <th>Event ID</th>
-        <th>Type</th>
-        <th>Source IP</th>
-        <th>Timestamp</th>
+        <th style="width: 80px;">Event ID</th>
+        <th style="width: 150px;">Type</th>
+        <th>Raw Log</th>
+        <th style="width: 140px;">Source IP</th>
+        <th style="width: 160px;">Timestamp</th>
       </tr>
     </thead>
     <tbody>
       {% for event in events %}
       <tr onclick="window.location='/events/{{ event['id'] }}'" class="clickable">
         <td class="ts">#{{ event['id'] }}</td>
-        <td><strong>{{ event['event_type'] }}</strong></td>
+        <td><span class="event-type-tag">{{ event['event_type'] }}</span></td>
+        <td class="raw-log-cell" title="{{ event['raw_log'] or '' }}">{{ event['raw_log'] or '—' }}</td>
         <td class="ip">{{ event['source_ip'] or '—' }}</td>
         <td class="ts">{{ event['timestamp'] or '—' }}</td>
       </tr>

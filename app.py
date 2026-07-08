@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from flask import Flask, render_template, request, redirect
 from generators.apache_generator import  apache_generator
 from generators.auth_generator import  auth_generator
@@ -76,6 +77,109 @@ def clear():
     clear_events()
     return redirect("/")
 
+_TREND_HOURS = 6
+
+
+def _parse_ts(ts):
+    if not ts:
+        return None
+    try:
+        return datetime.fromisoformat(ts)
+    except ValueError:
+        pass
+    try:
+        return datetime.strptime(ts, "%b %d %H:%M:%S").replace(year=datetime.now().year)
+    except ValueError:
+        return None
+
+
+def _hourly_trend(items, ts_key, hours=_TREND_HOURS):
+    now = datetime.now()
+    buckets = [0] * hours
+    for item in items:
+        ts = _parse_ts(item[ts_key])
+        if ts is None:
+            continue
+        age_hours = (now - ts).total_seconds() / 3600
+        if 0 <= age_hours < hours:
+            idx = hours - 1 - int(age_hours)
+            buckets[idx] += 1
+    delta = buckets[-1] - buckets[0]
+    return {"points": _sparkline_points(buckets), "delta": delta}
+
+
+def _hourly_unique_ip_trend(events, hours=_TREND_HOURS):
+    now = datetime.now()
+    buckets = [set() for _ in range(hours)]
+    for e in events:
+        ip = e["source_ip"]
+        if not ip:
+            continue
+        ts = _parse_ts(e["timestamp"])
+        if ts is None:
+            continue
+        age_hours = (now - ts).total_seconds() / 3600
+        if 0 <= age_hours < hours:
+            idx = hours - 1 - int(age_hours)
+            buckets[idx].add(ip)
+    counts = [len(b) for b in buckets]
+    delta = counts[-1] - counts[0]
+    return {"points": _sparkline_points(counts), "delta": delta}
+
+
+def _sparkline_points(counts, width=100, height=24):
+    if not counts:
+        return f"0,{height} {width},{height}"
+    max_c = max(counts) or 1
+    n = len(counts)
+    step = width / (n - 1) if n > 1 else width
+    pts = []
+    for i, c in enumerate(counts):
+        x = round(i * step, 1)
+        y = round(height - (c / max_c) * height, 1)
+        pts.append(f"{x},{y}")
+    return " ".join(pts)
+
+
+SEVERITY_COLORS = {
+    "CRITICAL": "var(--danger)",
+    "HIGH": "var(--warning)",
+    "MEDIUM": "var(--info)",
+    "LOW": "var(--text-faint)",
+}
+
+TYPE_PALETTE = [
+    "var(--info)", "var(--success)", "var(--warning)",
+    "var(--danger)", "var(--accent-purple)", "var(--accent-pink)",
+    "var(--text-faint)",
+]
+
+
+def _chart_segments(counts, palette):
+    total = sum(counts.values())
+    segments = []
+    cum = 0.0
+    for i, (label, count) in enumerate(counts.items()):
+        pct = (count / total * 100) if total else 0
+        color = palette[i % len(palette)]
+        segments.append({
+            "label": label,
+            "count": count,
+            "pct": round(pct, 1),
+            "color": color,
+            "start": round(cum, 2),
+            "end": round(cum + pct, 2),
+        })
+        cum += pct
+    return segments, total
+
+
+def _conic_gradient(segments, total):
+    if not total:
+        return "var(--surface-2) 0% 100%"
+    return ", ".join(f"{s['color']} {s['start']}% {s['end']}%" for s in segments)
+
+
 @app.route("/")
 def dashboard():
 
@@ -94,10 +198,52 @@ def dashboard():
     top_ips = sorted(ip_counts.items(), key=lambda x: x[1], reverse=True)[:5]
     unique_ips = len(ip_counts)
 
-    severity_counts = {}
+    severity_map = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
     for a in alerts:
-        sev = a["severity"] or "UNKNOWN"
-        severity_counts[sev] = severity_counts.get(sev, 0) + 1
+        sev = (a["severity"] or "UNKNOWN").upper()
+        if sev in severity_map:
+            severity_map[sev] += 1
+
+    type_counts = {}
+    for e in events:
+        t = e["event_type"]
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    severity_segments, severity_total = _chart_segments(
+        severity_map, list(SEVERITY_COLORS.values())
+    )
+    severity_gradient = _conic_gradient(severity_segments, severity_total)
+    type_segments, type_total = _chart_segments(type_counts, TYPE_PALETTE)
+    type_gradient = _conic_gradient(type_segments, type_total)
+
+    log_sources = []
+    online_count = 0
+    for filename in sorted(ALLOWED):
+        path = os.path.join(LOG_DIR, filename)
+        if os.path.exists(path):
+            stat = os.stat(path)
+            log_sources.append({
+                "name": filename,
+                "status": "Active",
+                "size_kb": round(stat.st_size / 1024, 1),
+                "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%H:%M:%S"),
+            })
+            online_count += 1
+        else:
+            log_sources.append({
+                "name": filename,
+                "status": "Missing",
+                "size_kb": 0,
+                "modified": "—",
+            })
+
+    timestamps = [e["timestamp"] for e in events if e["timestamp"]]
+    last_ingest = max(timestamps) if timestamps else None
+
+    trends = {
+        "total_alerts": _hourly_trend(alerts, "created_at"),
+        "unique_ips": _hourly_unique_ip_trend(events),
+    }
 
     return render_template(
         "dashboard.html",
@@ -109,7 +255,18 @@ def dashboard():
         closed_alerts=closed_alerts,
         unique_ips=unique_ips,
         top_ips=top_ips,
-        severity_counts=severity_counts,
+        trends=trends,
+        severity_segments=severity_segments,
+        severity_total=severity_total,
+        severity_gradient=severity_gradient,
+        type_segments=type_segments,
+        type_total=type_total,
+        type_gradient=type_gradient,
+        log_sources=log_sources,
+        online_count=online_count,
+        total_sources=len(ALLOWED),
+        total_events=len(events),
+        last_ingest=last_ingest,
     )
 
 @app.route("/events")

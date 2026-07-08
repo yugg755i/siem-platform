@@ -14,7 +14,7 @@
   <form action="/upload" method="POST" enctype="multipart/form-data">
     <label class="action-btn" style="cursor:pointer;" title="Upload your own auth.log, apache.log, or windows.log">
       Upload Logs
-      <input type="file" name="logs" multiple accept=".log,.json" style="display:none;" onchange="this.form.submit()">
+      <input type="file" name="logs" multiple accept=".log,.json" style="display:none;" onchange="this.form.submit(); this.value='';">
     </label>
   </form>
   <form action="/process" method="POST">
@@ -30,65 +30,191 @@
 {% endblock %}
 
 {% block content %}
+{% macro delta_badge(delta) %}
+  {%- if delta > 0 -%}
+  <span class="stat-delta stat-delta--up">▲ {{ delta }}</span>
+  {%- elif delta < 0 -%}
+  <span class="stat-delta stat-delta--up">▼ {{ -delta }}</span>
+  {%- else -%}
+  <span class="stat-delta stat-delta--flat">— 0</span>
+  {%- endif -%}
+{% endmacro %}
 
 <div class="stat-row">
   <div class="stat">
     <div class="stat-label">Total Alerts</div>
-    <div class="stat-value">{{ total_alerts }}</div>
+    <div class="stat-value-row">
+      <span class="stat-value">{{ total_alerts }}</span>
+      {{ delta_badge(trends.total_alerts.delta) }}
+    </div>
+    <svg class="stat-spark" viewBox="0 0 100 24" width="100%" height="24" preserveAspectRatio="none"><polyline points="{{ trends.total_alerts.points }}" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/></svg>
   </div>
   <div class="stat">
     <div class="stat-label">New</div>
-    <div class="stat-value">{{ open_alerts }}</div>
+    <div class="stat-value-row">
+      <span class="stat-value">{{ open_alerts }}</span>
+    </div>
   </div>
   <div class="stat">
     <div class="stat-label">Investigating</div>
-    <div class="stat-value">{{ investigating_alerts }}</div>
+    <div class="stat-value-row">
+      <span class="stat-value">{{ investigating_alerts }}</span>
+    </div>
   </div>
   <div class="stat">
     <div class="stat-label">Closed</div>
-    <div class="stat-value">{{ closed_alerts }}</div>
+    <div class="stat-value-row">
+      <span class="stat-value">{{ closed_alerts }}</span>
+    </div>
   </div>
   <div class="stat">
     <div class="stat-label">Unique IPs</div>
-    <div class="stat-value">{{ unique_ips }}</div>
+    <div class="stat-value-row">
+      <span class="stat-value">{{ unique_ips }}</span>
+      {{ delta_badge(trends.unique_ips.delta) }}
+    </div>
+    <svg class="stat-spark" viewBox="0 0 100 24" width="100%" height="24" preserveAspectRatio="none"><polyline points="{{ trends.unique_ips.points }}" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/></svg>
   </div>
 </div>
 
-{% if top_ips %}
-<div class="section-label">Top Source IPs</div>
-<div class="ip-block">
-  {% for ip, count in top_ips %}
-  <div class="ip-row">
-    <div><span style="color: var(--text-muted); margin-right: 10px;">#{{ loop.index }}</span><span class="ip-addr">{{ ip }}</span></div>
-    <span class="ip-count">{{ count }} event{{ 's' if count != 1 }}</span>
+<div class="grid-3">
+  <div>
+    <div class="section-label">Events by Type</div>
+    <div class="chart-box">
+      {% if type_total %}
+      <div class="donut-wrap">
+        <div class="donut-svg-container">
+          <svg class="donut-svg" viewBox="0 0 36 36">
+            <circle class="donut-svg-bg" cx="18" cy="18" r="15.915" />
+            {% set ns_type = namespace(accum=0) %}
+            {% for seg in type_segments %}
+              {% set percent = (seg.count / type_total) * 100 %}
+              <circle class="donut-svg-segment" cx="18" cy="18" r="15.915"
+                      stroke="{{ seg.color }}" 
+                      stroke-dasharray="{{ percent }} {{ 100 - percent }}" 
+                      stroke-dashoffset="{{ 100 - ns_type.accum + 25 }}" />
+              {% set ns_type.accum = ns_type.accum + percent %}
+            {% endfor %}
+          </svg>
+          <div class="donut-hole">
+            <span class="donut-total">{{ type_total }}</span>
+            <span class="donut-total-label">events</span>
+          </div>
+        </div>
+        
+        <div class="chart-legend">
+          {% for seg in type_segments %}
+          <div class="legend-row">
+            <div class="legend-label-group">
+              <span class="legend-dot" style="background: {{ seg.color }};"></span>
+              <span class="legend-name">{{ seg.label }}</span>
+            </div>
+            <span class="legend-count">{{ seg.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty">No events yet.</div>
+      {% endif %}
+    </div>
   </div>
-  {% endfor %}
-</div>
-{% endif %}
 
-<div class="section-label">Recent Events</div>
-<div class="table-block">
+  <div>
+    <div class="section-label">Alerts by Severity</div>
+    <div class="chart-box">
+      {% if severity_total %}
+      <div class="donut-wrap">
+        <div class="donut-svg-container">
+          <svg class="donut-svg" viewBox="0 0 36 36">
+            <circle class="donut-svg-bg" cx="18" cy="18" r="15.915" />
+            {% set ns_sev = namespace(accum=0) %}
+            {% for seg in severity_segments %}
+              {% set percent = (seg.count / severity_total) * 100 %}
+              <circle class="donut-svg-segment" cx="18" cy="18" r="15.915"
+                      stroke="{{ seg.color }}" 
+                      stroke-dasharray="{{ percent }} {{ 100 - percent }}" 
+                      stroke-dashoffset="{{ 100 - ns_sev.accum + 25 }}" />
+              {% set ns_sev.accum = ns_sev.accum + percent %}
+            {% endfor %}
+          </svg>
+          <div class="donut-hole">
+            <span class="donut-total">{{ severity_total }}</span>
+            <span class="donut-total-label">alerts</span>
+          </div>
+        </div>
+
+        <div class="chart-legend">
+          {% for seg in severity_segments %}
+          <div class="legend-row">
+            <div class="legend-label-group">
+              <span class="legend-dot" style="background: {{ seg.color }};"></span>
+              <span class="legend-name">{{ seg.label | title }}</span>
+            </div>
+            <span class="legend-count">{{ seg.count }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty">No alerts yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <div class="section-label">Pipeline Health</div>
+    <div class="pipeline-block">
+      <div class="pipeline-grid">
+        <div class="pipeline-cell">
+          <span class="pipeline-cell-label">Log Sources Online</span>
+          <span class="pipeline-cell-value">{{ online_count }}/{{ total_sources }}</span>
+        </div>
+        <div class="pipeline-cell">
+          <span class="pipeline-cell-label">Total Events</span>
+          <span class="pipeline-cell-value">{{ total_events }}</span>
+        </div>
+        <div class="pipeline-cell">
+          <span class="pipeline-cell-label">Last Ingest</span>
+          <span class="pipeline-cell-value">{{ last_ingest or '—' }}</span>
+        </div>
+        <div class="pipeline-cell">
+          <span class="pipeline-cell-label">Alerts Pending</span>
+          <span class="pipeline-cell-value">{{ open_alerts }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 36px;">
+  <div class="section-label">Recent Events</div>
+  <div class="table-block">
   {% if events %}
   <table>
     <thead>
       <tr>
-        <th>Event ID</th>
-        <th>Type</th>
-        <th>Source IP</th>
-        <th>Timestamp</th>
+        <th style="width: 80px;">Event ID</th>
+        <th style="width: 150px;">Type</th>
+        <th>Raw Log</th>
+        <th style="width: 140px;">Source IP</th>
+        <th style="width: 160px;">Timestamp</th>
       </tr>
     </thead>
     <tbody>
       {% for event in events[:20] %}
-      <tr onclick="window.location='/events/{{ event['id'] }}'" class="clickable">
-        <td class="ts">#{{ event['id'] }}</td>
-        <td><strong>{{ event['event_type'] }}</strong></td>
-        <td class="ip">{{ event['source_ip'] or '—' }}</td>
-        <td class="ts">{{ event['timestamp'] or '—' }}</td>
+      {% set current_id = event.id if event.id is defined else event['id'] %}
+      <tr onclick="window.location='/events/{{ current_id }}'" class="clickable">
+        <td class="ts">#{{ current_id }}</td>
+        <td><span class="event-type-tag">{{ event.event_type if event.event_type is defined else event['event_type'] }}</span></td>
+        <td class="raw-log-cell" title="{{ event.raw_log if event.raw_log is defined else event['raw_log'] or '' }}">{{ event.raw_log if event.raw_log is defined else event['raw_log'] or '—' }}</td>
+        <td class="ip">{{ event.source_ip if event.source_ip is defined else event['source_ip'] or '—' }}</td>
+        <td class="ts">{{ event.timestamp if event.timestamp is defined else event['timestamp'] or '—' }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
   {% if events | length > 20 %}
   <div class="table-footer">
     Showing latest 20 — <a href="/events">View all {{ events | length }} events</a>
@@ -99,4 +225,16 @@
   {% endif %}
 </div>
 
+<div class="section-label">Log Sources</div>
+<div class="ip-block">
+  {% for src in log_sources %}
+  <div class="ip-row">
+    <div><span class="ip-addr">{{ src.name }}</span></div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span class="ip-count">{{ src.size_kb }} KB · {{ src.modified }}</span>
+      <span class="badge {{ 'badge--success' if src.status == 'Active' else 'badge--low' }}">{{ src.status }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 {% endblock %}
